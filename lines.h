@@ -40,6 +40,32 @@ struct MENU {
     char *colors[3]; //options, label, input
 };
 
+struct Object {
+    char *name;
+    char *color;
+    char *inspection[10];
+    int isVisible;
+};
+
+typedef struct Object Object;
+
+struct Room {
+    char *name;
+    char *look[10];
+    int currentLook;
+    Object *objects[20];
+    struct Room *go[4]; // N, S, E, W
+};
+
+typedef struct Room Room;
+
+enum Directions {
+    North,
+    South,
+    East,
+    West
+};
+
 const char *logo[] = {
     "            ___                      ___                               \n",
     "           (   )                    (   )                              \n",
@@ -69,6 +95,25 @@ const char *license[] = {
     "\0"
 };
 
+const char **commandColor[][2] = {
+    {
+        {
+            "move", "go", "walk", "enter", "examine", "inventory"
+        },
+        {
+            "§7"
+        }
+    },
+    {
+        {
+            "north", "south", "east", "west"
+        },
+        {
+            "§6"
+        }
+    }
+};
+
 struct MENU MAIN_MENU = {
     {
         "New Game",
@@ -84,5 +129,26 @@ struct MENU MAIN_MENU = {
         "§0",
         "§1",
         "§1"
+    }
+};
+
+Object key = {
+    "Key", "§6",
+    {
+        "A key"
+    },
+    1
+};
+
+Room beginningCell = {
+    "Dungeon Cell",
+    {
+        "The room is very dark.",
+        "The room is bright."
+    },
+    0,
+    {0,0,0,0,0,0,0,0,0,0},
+    {
+        0, 0, 0, 0
     }
 };

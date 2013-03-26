@@ -51,6 +51,7 @@ void newGame();
 extern const char *lines[];
 extern const char *logo[];
 extern const char *license[];
+extern const char *prologue[];
 
 extern struct MENU MAIN_MENU;
 
@@ -59,6 +60,7 @@ int gameRunning;
 int main() {
     consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     system("mode 100,50");
+    system("title Adventure");
     printLogo();
     printf("\n\n\n");
     printLicense();
@@ -87,8 +89,36 @@ int gameStart(){
 }
 
 void newGame(){
+    int i, j, l = 0;
     system("cls");
-    printFullScreenText(lines[1], WINDOW_WIDTH, WINDOW_HEIGHT, 100);
+    printFullScreenText(lines[1], WINDOW_WIDTH, WINDOW_HEIGHT, 10);
+    Sleep(1000);
+    for(i = 0; i < WINDOW_HEIGHT/2; i++){
+        printf("\n");
+    };
+    for(j = 0; *prologue[i + j];){
+        for(i = 0; i < WINDOW_HEIGHT - 1 && *prologue[i+j]; i++){
+            l++;
+            printf("   ");
+            printText(prologue[i+j], 10);
+            //Sleep(200);
+        };
+        j += i;
+        i = 0;
+        if(prologue[j+1]){
+            printf("   ");
+            printText(lines[LINE_PRESS_TO_CONTINUE], 0);
+            getch();
+        }
+    }
+    for(l = WINDOW_HEIGHT - l - 3; l > 0; l--){
+        printText("\n", 100);
+    }
+    getch();
+
+    for(l = 0; l < WINDOW_HEIGHT; l++){
+        printText("\n", 100);
+    }
 }
 
 

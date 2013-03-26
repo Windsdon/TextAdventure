@@ -36,27 +36,129 @@ WORD colorTable[] = {
 };
 
 void color(WORD color);
-void printText(char *text);
+void printText(char *text, int charDelay);
 void printLogo();
+void printLicense();
 int getMaxLineLength (char *l[]);
-void printCenteredText(char *line, int width);
-void printFullScreenText(char *line, int width, int height);
+void printCenteredText(char *line, int width, int charDelay);
+void printFullScreenText(char *line, int width, int height, int charDelay);
 int countLines(char *line, int hspace);
+int printMenu(struct MENU m, char *leftSpacing);
+int isMenuOptionValid(struct MENU m, char o);
+int gameStart();
+void newGame();
+
 extern const char *lines[];
 extern const char *logo[];
+extern const char *license[];
+
+extern struct MENU MAIN_MENU;
+
+int gameRunning;
 
 int main() {
     consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     system("mode 100,50");
     printLogo();
-    printFullScreenText(lines[1], WINDOW_WIDTH, WINDOW_HEIGHT - 13);
+    printf("\n\n\n");
+    printLicense();
     getch();
+    return gameStart();
+}
+
+int gameStart(){
+    gameRunning = 1;
+    while(gameRunning){
+        system("cls");
+        printf("\n\n");
+        switch(printMenu(MAIN_MENU, "   ")){
+            case 0: //new game
+                newGame();
+                break;
+            case 1: //load game
+                printText("\n   §2This feature is not available yet.", 0);
+                getch();
+                break;
+            default: //exit
+                gameRunning = 0;
+        }
+    }
     return 0;
 }
 
+void newGame(){
+    system("cls");
+    printFullScreenText(lines[1], WINDOW_WIDTH, WINDOW_HEIGHT, 100);
+}
 
 
-void printText(char *text){
+void printLogo(){
+    register int i, j;
+    int cs = (100 - getMaxLineLength(logo))/2;
+
+    for(i = 0; i < 11; i++){
+        for(j = 0; j < cs; j++){
+            printf(" ");
+        };
+        printText(logo[i], 0);
+    }
+    printCenteredText(logo[11], WINDOW_WIDTH, 0);
+
+}
+
+void printLicense() {
+    register int i, j;
+    int cs = (100 - getMaxLineLength(license))/2;
+
+    for(i = 0; license[i]; i++){
+        for(j = 0; j < cs; j++){
+            printf(" ");
+        };
+        printText(license[i], 0);
+    }
+
+}
+
+void printCenteredText(char *line, int width, int charDelay){
+    int spacing = (width - strlen(line))/2;
+    register int i;
+
+    for(i = 0; i < spacing; i++){
+        putchar(' ');
+    }
+
+    printText(line, charDelay);
+}
+
+void printFullScreenText(char *line, int width, int height, int charDelay){
+    int vspacing = (height - countLines(line, width))/2;
+    register int i;
+
+    for(i = 0; i < vspacing; i++){
+        putchar('\n');
+    }
+
+    printCenteredText(line, width, charDelay);
+}
+
+int countLines(char *line, int hspace){
+    char *p = line;
+    int lw = 0, nl = 0;
+
+    while(*p){
+        if(*p == '\n' || lw == hspace){
+            nl++;
+            lw = 0;
+        }else{
+            lw++;
+        }
+        p++;
+    }
+
+    return nl;
+}
+
+void printText(char *text, int charDelay){
     int prevSim = 0;
     while(*text){
         if(*text == '§'){
@@ -75,61 +177,47 @@ void printText(char *text){
         }
 
         putchar(*text);
+        Sleep(charDelay);
         text++;
     }
 }
 
-void printLogo(){
-    register int i, j;
-    int cs = (100 - getMaxLineLength(logo))/2;
+int printMenu(struct MENU m, char *leftSpacing){
+    int i = 0, r;
+    char c;
+    while(m.labels[i]){
+        printText(m.colors[0], 0);
+        printf("%s%c. ", leftSpacing, m.options[i]);
 
-    for(i = 0; i < 11; i++){
-        for(j = 0; j < cs; j++){
-            printf(" ");
-        };
-        printText(logo[i]);
-    }
-    printCenteredText(logo[11], WINDOW_WIDTH);
-
-}
-
-void printCenteredText(char *line, int width){
-    int spacing = (width - strlen(line))/2;
-    register int i;
-
-    for(i = 0; i < spacing; i++){
-        putchar(' ');
+        printText(m.colors[1], 0);
+        printf("%s\n", m.labels[i]);
+        i++;
     }
 
-    printText(line);
-}
-
-void printFullScreenText(char *line, int width, int height){
-    int vspacing = (height - countLines(line, width))/2;
-    register int i;
-
-    for(i = 0; i < vspacing; i++){
-        putchar('\n');
-    }
-
-    printCenteredText(line, width);
-}
-
-int countLines(char *line, int hspace){
-    char *p = line;
-    int lw = 0, nl = 0;
-
-    while(*p){
-        if(*p == '\n' || lw == hspace){
-            nl++;
-            lw = 0;
-        }else{
-            lw++;
+    do{
+        if(r == -1){
+            color(COLOR_RED);
+            printf("%sThis is not a valid option.\n", leftSpacing);
         }
-        p++;
-    }
+        fflush(stdin);
+        printText(m.colors[0], 0);
+        printf("\n%s> ", leftSpacing);
+        printText(m.colors[2], 0);
+        scanf("%c", &c);
+    }while((r = isMenuOptionValid(m, c)) == -1);
 
-    return nl;
+    return r;
+}
+
+int isMenuOptionValid(struct MENU m, char o){
+    int i = 0;
+    while(m.options[i]){
+        if(m.options[i] == o){
+            return i;
+        }
+        i++;
+    }
+    return -1;
 }
 
 void color(WORD color){

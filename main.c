@@ -28,6 +28,7 @@ SMALL_RECT srctWindow;
 #define WINDOW_WIDTH 100
 #define WINDOW_HEIGHT 50
 #define INPUT_BUFFER_SIZE 100
+#define ROOM_COLOR "§5"
 
 WORD colorTable[] = {
     COLOR_WHITE, //0

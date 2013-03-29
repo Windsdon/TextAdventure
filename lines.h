@@ -2,6 +2,7 @@
 #define LINE_INTRO 1
 #define LINE_PRESS_TO_CONTINUE 2
 #define LINE_WAKE_UP 3
+#define MAX_NUM_OF_KEYWORDS 30
 
 const char *lines[] = {
     "§0What do you do?",
@@ -54,7 +55,7 @@ struct Room {
     char *look[10];
     int currentLook;
     Object *objects[20];
-    struct Room *go[4]; // N, S, E, W
+    struct Room *go[10]; // N, S, E, W, passages[...]
 };
 
 typedef struct Room Room;
@@ -64,6 +65,11 @@ enum Directions {
     South,
     East,
     West
+};
+
+struct LIST_OF_KEYWORDS {
+    char *words[MAX_NUM_OF_KEYWORDS];
+    char *colors[MAX_NUM_OF_KEYWORDS];
 };
 
 const char *logo[] = {
@@ -95,10 +101,10 @@ const char *license[] = {
     "\0"
 };
 
-const char **commandColor[][2] = {
+const char *commandColor[][2][20] = {
     {
         {
-            "move", "go", "walk", "enter", "examine", "inventory"
+            "move", "go", "walk", "enter", "examine", "inventory", 0
         },
         {
             "§7"
@@ -106,12 +112,12 @@ const char **commandColor[][2] = {
     },
     {
         {
-            "north", "south", "east", "west"
+            "north", "south", "east", "west", 0
         },
         {
             "§6"
         }
-    }
+    },0
 };
 
 struct MENU MAIN_MENU = {

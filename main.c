@@ -14,7 +14,7 @@ SMALL_RECT srctWindow;
 #define COLOR_BLUE         FOREGROUND_BLUE | FOREGROUND_INTENSITY
 #define COLOR_DARK_GREEN   FOREGROUND_GREEN
 #define COLOR_MAGENTA      FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY
-#define COLOR_YELLOW       FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
+#define COLOR_YELLOW       FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY
 
 #define BG_WHITE BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY
 #define BG_GRAY BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE
@@ -23,7 +23,7 @@ SMALL_RECT srctWindow;
 #define BG_BLUE BACKGROUND_BLUE | BACKGROUND_INTENSITY
 #define BG_DARK_GREEN BACKGROUND_GREEN
 
-#define NUM_COLORS 7
+#define NUM_COLORS 8
 
 #define WINDOW_WIDTH 100
 #define WINDOW_HEIGHT 50
@@ -55,7 +55,9 @@ int gameStart();
 void newGame();
 char *askForInput(char *color, int doHighlight);
 void addToInputBuffer(char c);
-void printHighlightedInput(char *color, Object *roomObjects);
+void printHighlightedInput(char *color, Object *roomObjects[], Room *rooms[]);
+int getMatchingIndex(const char *needle, const char *haystack[]);
+void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object *objects[], Room *rooms[]);
 void explode(char *line, char fuse, char *holder[]);
 int countOccurrences(char *text, char c);
 void clearInputBuffer();
@@ -69,6 +71,7 @@ extern const char *license[];
 extern const char *prologue[];
 
 extern struct MENU MAIN_MENU;
+extern struct LIST_OF_KEYWORDS;
 
 int gameRunning;
 
@@ -77,14 +80,15 @@ extern Room beginningCell;
 extern Object key;
 
 int main() {
+    char *p[4];
     consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     system("mode 100,50");
     system("title Adventure");
     init();
-    printLogo();
-    printf("\n\n\n");
-    printLicense();
-    getch();
+    //printLogo();
+    //printf("\n\n\n");
+    //printLicense();
+    //getch();
     return gameStart();
 }
 
@@ -112,7 +116,8 @@ void newGame(){
     int i, j, l = 0;
 
     system("cls");
-    askForInput("§2", 1);
+    printText("§0> ", 0);
+    askForInput("§1", 1);
 
     //prologue
     system("cls");
@@ -133,6 +138,7 @@ void newGame(){
         if(prologue[j+1]){
             printf("   ");
             printText(lines[LINE_PRESS_TO_CONTINUE], 0);
+
             getch();
         }
     }
@@ -142,6 +148,7 @@ void newGame(){
 
     printf("   ");
     printText(lines[LINE_PRESS_TO_CONTINUE], 0);
+    fflush(stdin);
     getch();
 
     for(l = 0; l < WINDOW_HEIGHT; l++){
@@ -151,47 +158,88 @@ void newGame(){
 }
 
 char *askForInput(char *color, int doHighlight){
-    char c, *p;
-    int start, now;
+    char c, *p, bufferSize;
+    int start, now, b;
     printText(color, 0);
 
     clearInputBuffer();
 
     do {
         c = getch();
+        bufferSize = strlen(inputBuffer);
         addToInputBuffer(c);
         if(doHighlight){
-            p = inputBuffer;
-            while(*p){
+            //Ugly code, but works :)
+            for(b = 0; b < bufferSize; b++){
                 printf("\b");
-                p++;
             }
-            p = inputBuffer;
-            while(*p){
+            for(b = 0; b < bufferSize; b++){
                 printf(" ");
-                p++;
             }
-            fflush(stdin);
-            printHighlightedInput(color, *currentRoom->objects);
+            for(b = 0; b < bufferSize; b++){
+                printf("\b");
+            }
+            fflush(stdout);
+            printHighlightedInput(color, *currentRoom->objects, *currentRoom->go);
         }else{
             putchar(c);
         }
     }while(c != 13);
 }
 
-void printHighlightedInput(char *color, Object *roomObjects){
-    char *pieces[countOccurrences(inputBuffer, ' ') + 1];
+void printHighlightedInput(char *color, Object *roomObjects[], Room *rooms[]){
+    int words = countOccurrences(inputBuffer, ' ') + 1;
+    char *pieces[words], *piece, tempBuffer[INPUT_BUFFER_SIZE];
+    int i = 0;
+    int m;
 
-    explode(inputBuffer, ' ', pieces);
+    struct LIST_OF_KEYWORDS keywords;
+    getListOfKeywords(&keywords, roomObjects, rooms);
+
+    //strtok() modifies the argument. Copy so we don't loose spaces!
+    strcpy(tempBuffer, inputBuffer);
+
+    for(i = 0; i < words; i++){
+        pieces[i] = "";
+    }
+
+    piece = strtok(tempBuffer, " ");
+    i = 0;
+    while(piece != NULL){
+        pieces[i] = piece;
+        i++;
+        piece = strtok(NULL, " ");
+    }
+
+    for(i = 0; i < words; i++){
+        if(i){printf(" ");}
+        m = getMatchingIndex(pieces[i], keywords.words);
+        if(m >= 0){
+            printText(keywords.colors[m], 0);
+        }else{
+            printText(color, 0);
+        }
+        printf("%s", pieces[i]);
+    }
+
 }
 
+/* Do NOT use this code! Doesn't work! */
 void explode(char *line, char fuse, char *holder[]){
     int lastPiece = 0, c = 0, p = 0;
+    char *last = line;
     while(*line){
         if(*line == fuse){
-            holder[p] = malloc(c * (sizeof (char)));
-            memcpy((line + lastPiece), holder[p], c * (sizeof (char)));
+            char s[c+1];
+            int i;
+            /*holder[p] = malloc(c * (sizeof (char)));
+            memcpy(last, holder[p], c * (sizeof (char)));*/
+            for(i = 0; i < c; i++){
+                s[i] = *(last + i);
+            }
+            holder[c] = s;
             lastPiece = c;
+            last = line;
             c = 0;
             p++;
         }
@@ -209,8 +257,34 @@ int countOccurrences(char *text, char c){
         text++;
     }
 
-    return o;
+   return o;
 }
+
+int getMatchingIndex(const char *needle, const char *haystack[]){
+    register int i;
+    for(i = 0; haystack[i]; i++){
+        if(!strcmp(needle, haystack[i])){
+            return i;
+        }
+    }
+    return -1;
+}
+
+void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object *objects[], Room *rooms[]){
+    int i, j, k;
+    for(i = 0; i < MAX_NUM_OF_KEYWORDS; i++){
+        keywords->colors[i] = 0;
+        keywords->words[i] = 0;
+    }
+    k = 0;
+    for(i = 0; commandColor[i][0][0]; i++){
+        for(j = 0; commandColor[i][0][j]; j++){
+            keywords->words[k] = commandColor[i][0][j];
+            keywords->colors[k] = commandColor[i][1][0];
+            k++;
+        }
+    }
+};
 
 void addToInputBuffer(char c){
     register int i;
@@ -218,7 +292,9 @@ void addToInputBuffer(char c){
 
     if(i < INPUT_BUFFER_SIZE){
         if(c == 8){
-            inputBuffer[i] = 0;
+            if(i > 0){
+                inputBuffer[i - 1] = 0;
+            }
         }else{
             inputBuffer[i] = c;
         }

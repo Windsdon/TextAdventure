@@ -54,7 +54,7 @@ struct Room {
     char *name;
     char *look[10];
     int currentLook;
-    Object *objects[20];
+    Object objects[20];
     struct Room *go[10]; // N, S, E, W, passages[...]
 };
 
@@ -104,7 +104,7 @@ const char *license[] = {
 const char *commandColor[][2][20] = {
     {
         {
-            "move", "go", "walk", "enter", "examine", "inventory", 0
+            "move", "go", "walk", "enter", "examine", "inventory", "grab", "pick", 0
         },
         {
             "§7"

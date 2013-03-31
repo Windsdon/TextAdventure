@@ -56,10 +56,9 @@ int gameStart();
 void newGame();
 char *askForInput(char *color, int doHighlight);
 void addToInputBuffer(char c);
-void printHighlightedInput(char *color, Object *roomObjects[], Room *rooms[]);
+void printHighlightedInput(char *color, Object roomObjects[], Room rooms[]);
 int getMatchingIndex(const char *needle, const char *haystack[]);
-void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object *objects[], Room *rooms[]);
-void explode(char *line, char fuse, char *holder[]);
+void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object objects[], Room rooms[]);
 int countOccurrences(char *text, char c);
 void clearInputBuffer();
 void init();
@@ -181,14 +180,14 @@ char *askForInput(char *color, int doHighlight){
                 printf("\b");
             }
             fflush(stdout);
-            printHighlightedInput(color, *currentRoom->objects, *currentRoom->go);
+            printHighlightedInput(color, currentRoom->objects, currentRoom->go);
         }else{
             putchar(c);
         }
     }while(c != 13);
 }
 
-void printHighlightedInput(char *color, Object *roomObjects[], Room *rooms[]){
+void printHighlightedInput(char *color, Object roomObjects[], Room rooms[]){
     int words = countOccurrences(inputBuffer, ' ') + 1;
     char *pieces[words], *piece, tempBuffer[INPUT_BUFFER_SIZE];
     int i = 0;
@@ -225,30 +224,6 @@ void printHighlightedInput(char *color, Object *roomObjects[], Room *rooms[]){
 
 }
 
-/* Do NOT use this code! Doesn't work! */
-void explode(char *line, char fuse, char *holder[]){
-    int lastPiece = 0, c = 0, p = 0;
-    char *last = line;
-    while(*line){
-        if(*line == fuse){
-            char s[c+1];
-            int i;
-            /*holder[p] = malloc(c * (sizeof (char)));
-            memcpy(last, holder[p], c * (sizeof (char)));*/
-            for(i = 0; i < c; i++){
-                s[i] = *(last + i);
-            }
-            holder[c] = s;
-            lastPiece = c;
-            last = line;
-            c = 0;
-            p++;
-        }
-        c++;
-        line++;
-    }
-}
-
 int countOccurrences(char *text, char c){
     int o = 0;
     while(*text){
@@ -271,7 +246,7 @@ int getMatchingIndex(const char *needle, const char *haystack[]){
     return -1;
 }
 
-void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object *objects[], Room *rooms[]){
+void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object objects[], Room rooms[]){
     int i, j, k;
     for(i = 0; i < MAX_NUM_OF_KEYWORDS; i++){
         keywords->colors[i] = 0;
@@ -284,6 +259,18 @@ void getListOfKeywords(struct LIST_OF_KEYWORDS *keywords, Object *objects[], Roo
             keywords->colors[k] = commandColor[i][1][0];
             k++;
         }
+    }
+
+    for(i = 0; objects[i].name; i++){
+        keywords->words[k] = objects[i].name;
+        keywords->colors[k] = objects[i].color;
+        k++;
+    }
+
+    for(i = 0; rooms[i].name; i++){
+        keywords->words[k] = rooms[i].name;
+        keywords->colors[k] = "§2";
+        k++;
     }
 };
 
@@ -459,7 +446,7 @@ void updateConsoleInfo(){
 }
 
 void init(){
-    beginningCell.objects[0] = &key;
+    beginningCell.objects[0] = key;
 
     currentRoom = &beginningCell;
 }

@@ -85,10 +85,10 @@ int main() {
     system("mode 100,50");
     system("title Adventure");
     init();
-    //printLogo();
-    //printf("\n\n\n");
-    //printLicense();
-    //getch();
+    printLogo();
+    printf("\n\n\n");
+    printLicense();
+    getch();
     return gameStart();
 }
 
@@ -114,10 +114,6 @@ int gameStart(){
 
 void newGame(){
     int i, j, l = 0;
-
-    system("cls");
-    printText("§0> ", 0);
-    askForInput("§1", 1);
 
     //prologue
     system("cls");
@@ -154,7 +150,12 @@ void newGame(){
     for(l = 0; l < WINDOW_HEIGHT; l++){
         printText("\n", 100);
     }
+
     system("cls");
+    printf("\n\n\n   ");
+    printText(lines[LINE_WHAT], 3);
+    printText("\n   §0> ", 0);
+    askForInput("§1", 1);
 }
 
 char *askForInput(char *color, int doHighlight){

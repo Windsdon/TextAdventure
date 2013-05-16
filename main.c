@@ -26,7 +26,7 @@ SMALL_RECT srctWindow;
 #define NUM_COLORS 8
 
 #define WINDOW_WIDTH 100
-#define WINDOW_HEIGHT 50
+#define WINDOW_HEIGHT 40
 #define INPUT_BUFFER_SIZE 100
 #define ROOM_COLOR "§5"
 
@@ -82,7 +82,7 @@ extern Object key;
 int main() {
     char *p[4];
     consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    system("mode 100,50");
+    system("mode 100,40");
     system("title Adventure");
     init();
     printLogo();
